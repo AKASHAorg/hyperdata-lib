@@ -1,0 +1,19 @@
+<html>
+<script type="text/javascript" src="dist/Hyperdata.js"></script>
+<body>
+  <script type="text/javascript">
+    // Test Web fetching
+    const webUrl = 'https://deiu.github.io/cdn/comment-ab019f3.jsonld'
+    const fetchWeb = Hyperdata.Web.fetcher('https://deiu.github.io/cdn/comment-ab019f3.jsonld').then( res => {
+      console.log(JSON.stringify(res))
+    })
+    // Test IPFS fetching
+    const ipfsHash = 'QmPPJ8bj3cq7ubChBMgZn5fbq2XmWWLiyBmuMggHS6WFgn'
+    const fetchIPFS = Hyperdata.IPFS.init().then(() => {
+      Hyperdata.IPFS.fetcher(ipfsHash).then( res => {
+        console.log(res)
+      })
+    })
+  </script>
+</body>
+</html>
