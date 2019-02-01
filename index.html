@@ -1,18 +1,24 @@
 <html>
 <script type="text/javascript" src="dist/Hyperdata.js"></script>
 <body>
+  <ul id="comments"></ul>
   <script type="text/javascript">
     // Test Web fetching
     const webUrl = 'https://deiu.github.io/cdn/comment-ab019f3.jsonld'
-    const fetchWeb = Hyperdata.Web.fetcher('https://deiu.github.io/cdn/comment-ab019f3.jsonld').then( res => {
-      console.log(JSON.stringify(res))
+    Hyperdata.Fetch('https://deiu.github.io/cdn/comment-ab019f3.jsonld').then( data => {
+      console.log('Fetched from Web:', data)
+      const li = document.createElement('li')
+      li.innerText = `${data.comment.body} (written on ${data.created})`
+      document.getElementById('comments').appendChild(li)
     })
     // Test IPFS fetching
-    const ipfsHash = 'QmPPJ8bj3cq7ubChBMgZn5fbq2XmWWLiyBmuMggHS6WFgn'
-    const fetchIPFS = Hyperdata.IPFS.init().then(() => {
-      Hyperdata.IPFS.fetcher(ipfsHash).then( res => {
-        console.log(res)
-      })
+    // const ipfsHash = 'QmPPJ8bj3cq7ubChBMgZn5fbq2XmWWLiyBmuMggHS6WFgn'
+    const ipfsHash = 'ipfs://QmbsFk8RfvHhMnzQmLWqvYbCSdZeNhXJe7fYve2bSamtZv'
+    Hyperdata.Fetch(ipfsHash).then( data => {
+      console.log('Fetched from IPFS:', data)
+      const li = document.createElement('li')
+      li.innerText = `${data.comment.body} (written on ${data.created})`
+      document.getElementById('comments').appendChild(li)
     })
   </script>
 </body>
