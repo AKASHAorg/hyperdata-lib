@@ -8,7 +8,8 @@
     Hyperdata.Fetch('https://deiu.github.io/cdn/comment-ab019f3.jsonld').then( data => {
       console.log('Fetched from Web:', data)
       const li = document.createElement('li')
-      li.innerText = `${data.comment.body} (written on ${data.created})`
+      li.innerHTML = `${data.comment.body} (written on ${data.created})<br>`
+      li.innerHTML += `<p><pre>${JSON.stringify(data.comment)}</pre></p>`
       document.getElementById('comments').appendChild(li)
     })
     // Test IPFS fetching
@@ -17,7 +18,8 @@
     Hyperdata.Fetch(ipfsHash).then( data => {
       console.log('Fetched from IPFS:', data)
       const li = document.createElement('li')
-      li.innerText = `${data.comment.body} (written on ${data.created})`
+      li.innerHTML = `${data.comment.body} (written on ${data.created})<br>`
+      li.innerHTML += `<p><pre>${JSON.stringify(data.comment)}</pre></p>`
       document.getElementById('comments').appendChild(li)
     })
   </script>
