@@ -2,9 +2,9 @@ const IPFS = require('ipfs')
 
 let node
 
-const init = () => {
+const init = (config = {}) => {
   return new Promise(resolve => {
-    node = new IPFS()
+    node = new IPFS(config)
     node.on('ready', () => {
       // done
       console.log('IPFS node initialized')
@@ -23,7 +23,6 @@ const fetcher = async url => {
     // get the CID from the url
     const parsed = new URL(url)
     const CID = parsed.pathname.substring(2, parsed.pathname.length)
-    console.log(CID)
     // fetch the data as string
     const data = await node.cat(CID)
     // attempt to return parsed JSON
