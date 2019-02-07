@@ -15,8 +15,10 @@ var IPFS = require('ipfs');
 var node = void 0;
 
 var init = function init() {
+  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
   return new Promise(function (resolve) {
-    node = new IPFS();
+    node = new IPFS(config);
     node.on('ready', function () {
       // done
       console.log('IPFS node initialized');
@@ -46,31 +48,30 @@ var fetcher = function () {
             // get the CID from the url
             parsed = new URL(url);
             CID = parsed.pathname.substring(2, parsed.pathname.length);
-
-            console.log(CID);
             // fetch the data as string
-            _context.next = 9;
+
+            _context.next = 8;
             return node.cat(CID);
 
-          case 9:
+          case 8:
             data = _context.sent;
             return _context.abrupt('return', JSON.parse(data.toString('utf8')));
 
-          case 13:
-            _context.prev = 13;
+          case 12:
+            _context.prev = 12;
             _context.t0 = _context['catch'](0);
 
             console.log('ipfs cat error', _context.t0);
 
-          case 16:
+          case 15:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined, [[0, 13]]);
+    }, _callee, undefined, [[0, 12]]);
   }));
 
-  return function fetcher(_x) {
+  return function fetcher(_x2) {
     return _ref.apply(this, arguments);
   };
 }();
