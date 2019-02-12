@@ -10,21 +10,12 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var IPFS = require('ipfs');
+var IPFSClient = require('ipfs-http-client');
 
-var node = void 0;
+var ipfs = void 0;
 
-var init = function init() {
-  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return new Promise(function (resolve) {
-    node = new IPFS(config);
-    node.on('ready', function () {
-      // done
-      console.log('IPFS node initialized');
-      resolve();
-    });
-  });
+var init = function init(multiaddr) {
+  ipfs = new IPFSClient(multiaddr);
 };
 
 var fetcher = function () {
@@ -36,7 +27,7 @@ var fetcher = function () {
           case 0:
             _context.prev = 0;
 
-            if (!(node === undefined)) {
+            if (!(ipfs === undefined)) {
               _context.next = 4;
               break;
             }
@@ -51,7 +42,7 @@ var fetcher = function () {
             // fetch the data as string
 
             _context.next = 8;
-            return node.cat(CID);
+            return ipfs.cat(CID);
 
           case 8:
             data = _context.sent;
@@ -71,9 +62,9 @@ var fetcher = function () {
     }, _callee, undefined, [[0, 12]]);
   }));
 
-  return function fetcher(_x2) {
+  return function fetcher(_x) {
     return _ref.apply(this, arguments);
   };
 }();
 
-module.exports = { fetcher: fetcher, init: init };
+module.exports = { fetcher: fetcher, init: init, ipfs: ipfs };

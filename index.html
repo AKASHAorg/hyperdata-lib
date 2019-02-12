@@ -1,5 +1,6 @@
 <html>
 <head>
+  <link rel="icon" type="image/png" href="favicon.png" />
   <style>
     body {
       margin: 2em;
@@ -9,16 +10,62 @@
     #center-main {
       width:800px; margin:0 auto;
     }
-    #comments {
+
+    .avatar {
+      margin-right: 10px;
+      -webkit-border-radius: 50%;
+      -moz-border-radius: 50%;
+      border-radius: 50%;
+      height: 73px;
+      width: 73px;
+      float: left;
+    }
+    .avatar img {
+      position: relative;
+      display: block;
+      width: 100%;
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+
+    .user {
+      border: 2px solid gray;
+      width: 250px;
+      margin: auto;
+      padding: 10px;
+      box-shadow: 2px 2px 5px 1px gray;
+    }
+
+    .user-pic {
+      border-bottom: 2px solid gray;
+    }
+
+    .comment-body {
+      margin-bottom: 10px;
       text-align: left;
     }
-    #comments > div {
-      margin-top: 1em;
-      border: #cccc 1px solid;
-      padding: 0.5em;
+
+
+    @media only screen 
+    and (min-width : 600px) {
+      .user {
+        width: 100%;
+        height: 100px; 
+      }
+      .user-pic {
+        border-right: 2px solid gray;
+        float: left;
+      }
+      .comment-box {
+        float: left;
+        text-align: left;
+      }
     }
   </style>
   <script type="text/javascript" src="dist/Hyperdata.js"></script>
+  <script src="https://unpkg.com/3box/dist/3box.min.js"></script>
+  <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
 </head>
 
 <body>
@@ -29,81 +76,7 @@
   <div id="center-main">
     <div id="comments"></div>
   </div>
-  <script type="text/javascript">
-    let comments = []
 
-    const listItem = function (data) {
-      // DID resolver
-      // https://github.com/decentralized-identity/universal-resolver/blob/master/docs/api-definition.md
-      // https://uniresolver.io/1.0/identifiers/did:sov:WRfXPg8dantKVubE3HX8pw
-
-      if (!data || !data.comment) {
-        return
-      }
-      // add a spacer
-      document.getElementById('comments').appendChild(document.createElement('br'))
-
-      const comment = document.createElement('div')
-      comment.id = data.source
-      comment.innerHTML = `<h3>${data.comment.body}</h3>`
-      comment.innerHTML += `<p><small>Written on ${data.created}</small><br><small>Source: ${data.source}</small><br>`
-      comment.innerHTML += `<pre>${JSON.stringify(data.comment)}</pre></p>`
-      // find if we are replying to an existing comment
-      const parent = document.getElementById(data.comment.ref)
-      if (parent && data.comment.type === 'Reply') {
-        console.log('Found parent!', data.ref)
-        comment.setAttribute('style', 'margin-left: 1em;')
-        parent.appendChild(comment)
-      } else {
-        console.log('Not a reply')
-        document.getElementById('comments').appendChild(comment)  
-      }
-    }
-    
-    const toCommentsList = function (data) {
-      comments.push(data)
-      comments.sort(function(a,b){
-        return new Date(a.created) - new Date(b.created)
-      })
-      // clear list
-      document.getElementById('comments').innerHTML = ''
-
-      comments.forEach(function (comment) {
-        listItem(comment)
-      })
-    }
-
-    // Init Hyperdata
-    const conf = {
-      config: {
-        Addresses: {
-          Swarm: [
-            '/ip4/127.0.0.1/tcp/4001'
-          ]
-        }
-      }
-    }
-
-    Hyperdata.IPFS.init(conf).then(function() {
-      // Test Web fetching
-      const urls = [
-        'https://deiu.github.io/cdn/comment-ab019f3.jsonld',
-        'ipfs://QmbsFk8RfvHhMnzQmLWqvYbCSdZeNhXJe7fYve2bSamtZv',  // Test IPFS fetching
-        'ipfs://QmPPJ8bj3cq7ubChBMgZn5fbq2XmWWLiyBmuMggHS6WFgn'
-      ]
-      const webUrl = 'https://deiu.github.io/cdn/comment-ab019f3.jsonld'
-      urls.forEach(function(url) {
-        Hyperdata.Fetch(url).then(function(data) {
-          if (data) {
-            data.source = url
-            toCommentsList(data)
-          }
-        }).catch(function(err) {
-          console.log('ERROR fetching:', err)
-        })
-      })
-    })
-    
-  </script>
+  <script type="text/javascript" src="app.js"></script>
 </body>
 </html>
