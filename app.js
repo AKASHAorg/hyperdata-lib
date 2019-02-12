@@ -93,6 +93,7 @@ index.forEach(function (url) {
     if (data) {
       data.source = url
       getDIDProfile(data.comment.author).then(function (profile) {
+        data.comment.authorDID = profile.ethereum_proof.linked_did
         if (profile.name) {
           data.comment.authorName = profile.name
         }
