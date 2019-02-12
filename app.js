@@ -14,7 +14,6 @@ const listItem = function (data) {
   const comment = document.createElement('div')
   comment.id = data.source
 
-  console.log(data)
   var source = data.source
   if (source.indexOf('ipfs') >= 0) {
     source = 'http://127.0.0.1:8080/api/v0/cat?stream-channels=true&arg=' + source.substring(source.lastIndexOf('//') + 2, source.length)
@@ -31,11 +30,9 @@ const listItem = function (data) {
 
   const parent = document.getElementById(data.comment.ref)
   if (parent && data.comment.type === 'Reply') {
-    console.log('Found parent!', data.ref)
-    comment.setAttribute('style', 'margin-left: 1em;')
+    comment.setAttribute('style', 'margin-left: 2em;')
     parent.appendChild(comment)
   } else {
-    console.log('Not a reply')
     document.getElementById('comments').appendChild(comment)
     // add a spacer
     document.getElementById('comments').appendChild(document.createElement('br'))
@@ -86,7 +83,7 @@ console.log('Initialized local IPFS node')
 const index = [
   'https://deiu.github.io/cdn/comment-ab019f3.jsonld',
   'ipfs://QmXAQJSUtvmoroV5CNBJBT7HmZk25e64hPuRcpFjyfG5tq',
-  'ipfs://QmWUK85iJJYMRmfNDaBSMvNoqsuKuyMqAFnSbwiD8Q6Vwc'
+  'ipfs://QmQvM3oa7ZUY2JwQbi9vQfoA5AdYKeb5CmafSagW11BNJc'
 ]
 index.forEach(function (url) {
   Hyperdata.Fetch(url).then(function (data) {
