@@ -8,68 +8,11 @@
       text-align: center; /* !!! */
     };
     #center-main {
-      width:800px; margin:0 auto;
-    }
-    #comments > div {
-      margin-top: 2em;
-    }
-
-    h4 {
-      margin-top: 10px;
-    }
-
-    .avatar {
-      margin-right: 10px;
-      -webkit-border-radius: 50%;
-      -moz-border-radius: 50%;
-      border-radius: 50%;
-      height: 73px;
-      width: 73px;
-      float: left;
-    }
-    .avatar img {
-      position: relative;
-      display: block;
-      width: 100%;
-      border-radius: 50%;
-      z-index: -1;
-    }
-
-
-    .user {
-      border: 1px solid gray;
-      min-width: 250px;
-      min-height: 80px;
-      margin: auto;
-      padding: 10px;
-      box-shadow: 1px 1px 3px 1px grey;
-    }
-
-    .user-pic {
-      border-bottom: 2px solid gray;
-    }
-
-    .comment-body {
-      margin-bottom: 10px;
-      text-align: left;
-    }
-
-
-    @media only screen 
-    and (min-width : 600px) {
-      .user-pic {
-        border-right: 2px solid gray;
-        float: left;
-      }
-      .comment-box {
-        float: left;
-        text-align: left;
-      }
+      min-width:600px; margin:0 auto;
     }
   </style>
   <script type="text/javascript" src="dist/Hyperdata.js"></script>
   <script src="https://unpkg.com/3box/dist/3box.min.js"></script>
-  <!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
 </head>
 
 <body>
@@ -82,5 +25,8 @@
   </div>
 
   <script type="text/javascript" src="app.js"></script>
+  <script>
+    AKASHAComments.init('comments')
+  </script>
 </body>
 </html>
