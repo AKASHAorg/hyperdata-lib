@@ -144,6 +144,7 @@ const AKASHAComments = (function () {
             'proof': {
               'type': 'web3Signature',
               'creator': did,
+              'hashingFunction': 'SHA3',
               'signatureValue': signature
             }
           }
