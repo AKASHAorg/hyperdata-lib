@@ -1,6 +1,6 @@
 const AKASHAComments = (function () {
   const CONF = {
-    IPFSaddr: '/ip4/127.0.0.1/tcp/8080'
+    IPFSaddr: '/ip4/127.0.0.1/tcp/5001' // '/ip4/127.0.0.1/tcp/8080'
   }
 
   // main reference item for the thread
@@ -32,6 +32,7 @@ const AKASHAComments = (function () {
     style.innerHTML =
       `
       textarea {
+        border: 1px solid black;
         min-width: 400px;
         min-height: 200px;
         margin-bottom: 10px;
@@ -74,11 +75,11 @@ const AKASHAComments = (function () {
       }
       .new-button {
         background-color: #fff;
-        color: #777!important;
+        color: #000;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         font-size: 100%;
-        padding: 1em 1.5em;
+        padding: 0.5em 1em;
         text-decoration: none;
         border: 1px solid #777;
         border-radius: 2px;
@@ -125,13 +126,22 @@ const AKASHAComments = (function () {
     submitBtn.classList.add('new-button')
     comment.appendChild(submitBtn)
 
+    const cancelBtn = document.createElement('button')
+    cancelBtn.innerHTML = 'Cancel'
+    cancelBtn.classList.add('new-button')
+    cancelBtn.addEventListener('click', function () {
+      comment.remove()
+    })
+    comment.appendChild(cancelBtn)
+
+    // logic for submitting a comment
     submitBtn.addEventListener('click', function () {
-      getDIDfromETH(web3js.eth.defaultAccount).then(function (did) {
+      getProfileFromETH(web3js.eth.defaultAccount).then(function (profile) {
         let payload = {
           'type': (isReply) ? 'AKASHAReply' : 'AKASHAComment',
           'ref': ref || mainRef,
           'created': new Date().toISOString(),
-          'author': did,
+          'author': profile.ethereum_proof.linked_did,
           'body': textbox.value
         }
         signData(payload).then(function (signature) {
@@ -143,17 +153,29 @@ const AKASHAComments = (function () {
             'payload': payload,
             'proof': {
               'type': 'web3Signature',
-              'creator': did,
+              'creator': profile.ethereum_proof.linked_did,
               'hashingFunction': 'SHA3',
               'signatureValue': signature
             }
           }
-          console.log(data)
 
           // TODO write to IPFS
-
-          // finally, remove the dialog div
-          comment.remove()
+          window.Hyperdata.IPFS.addString(JSON.stringify(data)).then(function (res) {
+            data.source = 'ipfs://' + res[0].hash
+            // add comment to list
+            if (profile.name) {
+              data.payload.authorName = profile.name
+            }
+            if (profile.image) {
+              data.payload.authorImage = 'https://ipfs.infura.io/ipfs/' + profile.image[0].contentUrl['/']
+            }
+            toCommentsList(data)
+            // finally, remove the dialog div
+            comment.remove()
+          }).catch(function (err) {
+            window.alert('Could not write to IPFS. Check console.')
+            console.error(err)
+          })
         }).catch(function (err) {
           window.alert('Could not sign data. Check console.')
           console.error(err)
@@ -165,7 +187,6 @@ const AKASHAComments = (function () {
     })
 
     // add elements to DOM
-    console.log(btn)
     btn.parentNode.insertBefore(comment, btn.nextSibling)
   }
 
@@ -245,12 +266,14 @@ const AKASHAComments = (function () {
       source = 'http://127.0.0.1:8080/api/v0/cat?stream-channels=true&arg=' + source.substring(source.lastIndexOf('//') + 2, source.length)
     }
 
+    const date = new Date(data.payload.created).toLocaleDateString() + ' at ' + new Date(data.payload.created).toLocaleTimeString()
+
     comment.innerHTML = `<div class="comments-user"> 
       <img class="comments-avatar" src="${data.payload.authorImage}">
       <div class="comments-box">
         <h4 class="comments-body">${data.payload.body}</h4>
         By ${data.payload.authorName}<br>
-        <small>On ${data.payload.created}</small><br>
+        <small>On ${date}</small><br>
         <small>Source: <a href="${source}">${data.source}</a></small>
       </div>
     </div>`
@@ -264,6 +287,15 @@ const AKASHAComments = (function () {
       // add a spacer
       commentsElement.appendChild(document.createElement('br'))
     }
+
+    // reply button
+    const btn = document.createElement('button')
+    btn.innerHTML = 'Reply'
+    btn.classList.add('new-button')
+    btn.addEventListener('click', function () {
+      showDialog(btn, data.source, true)
+    })
+    comment.appendChild(btn)
   }
 
   const toCommentsList = function (data) {
@@ -279,17 +311,17 @@ const AKASHAComments = (function () {
     })
   }
 
-  const getDIDfromETH = function (addr) {
+  const getProfileFromETH = function (addr) {
     return new Promise(function (resolve, reject) {
       window.Box.getProfile(addr).then(profile => {
-        return resolve(profile.ethereum_proof.linked_did)
+        return resolve(profile)
       }).catch(function (err) {
         return reject(err)
       })
     })
   }
 
-  const getDIDProfile = function (did) {
+  const getProfileFromDID = function (did) {
     return new Promise(function (resolve, reject) {
       if (!did || did.indexOf('did:muport') < 0) {
         return reject(new Error('Not a muport DID:', did))
@@ -338,7 +370,7 @@ const AKASHAComments = (function () {
       window.Hyperdata.Fetch(url).then(function (data) {
         if (data) {
           data.source = url
-          getDIDProfile(data.payload.author).then(function (profile) {
+          getProfileFromDID(data.payload.author).then(function (profile) {
             data.payload.authorDID = profile.ethereum_proof.linked_did
             if (profile.name) {
               data.payload.authorName = profile.name
