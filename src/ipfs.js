@@ -1,4 +1,5 @@
 const IPFSClient = require('ipfs-http-client')
+// const Buffer = require('buffer/').Buffer
 
 let ipfs
 
@@ -25,4 +26,17 @@ const fetcher = async url => {
   }
 }
 
-module.exports = { fetcher, init, ipfs }
+const addString = str => {
+  return new Promise(function (resolve, reject) {
+    const data = ipfs.types.Buffer.from(str)
+    ipfs.add(data, function (err, res) {
+      if (err) {
+        return reject(err)
+      }
+
+      return resolve(res)
+    })
+  })
+}
+
+module.exports = { addString, fetcher, init, ipfs }

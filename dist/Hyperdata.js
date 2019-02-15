@@ -83,6 +83,7 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var IPFSClient = require('ipfs-http-client');
+// const Buffer = require('buffer/').Buffer
 
 var ipfs = void 0;
 
@@ -139,7 +140,20 @@ var fetcher = function () {
   };
 }();
 
-module.exports = { fetcher: fetcher, init: init, ipfs: ipfs };
+var addString = function addString(str) {
+  return new Promise(function (resolve, reject) {
+    var data = ipfs.types.Buffer.from(str);
+    ipfs.add(data, function (err, res) {
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve(res);
+    });
+  });
+};
+
+module.exports = { addString: addString, fetcher: fetcher, init: init, ipfs: ipfs };
 },{"babel-runtime/helpers/asyncToGenerator":53,"babel-runtime/regenerator":54,"ipfs-http-client":285}],3:[function(require,module,exports){
 'use strict';
 
