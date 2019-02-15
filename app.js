@@ -15,8 +15,8 @@ const AKASHAComments = (function () {
   // emulate indexing service for all comments
   const index = [
     'https://deiu.github.io/cdn/comment-ab019f3.jsonld',
-    'ipfs://QmWsZJJgAA54Y9DYn1g7FtR8kgijgXeRqbfhnfggqAM36M',
-    'ipfs://QmeFVNtUkFxA28mJGNoduRgnShgSzGAxD34C8N1FHtKy7g'
+    'ipfs://QmbYxRia33rKq2x6CLGprEBnRmb6aXGcDNfb34yDSur6Nz',
+    'ipfs://QmaR8fvCPZVLMpPspEXnNLa4brMbr2ELuBtG9sxrpYPEpC'
   ]
 
   // default element where we list comments
@@ -36,6 +36,9 @@ const AKASHAComments = (function () {
         min-width: 400px;
         min-height: 200px;
         margin-bottom: 10px;
+      }
+      .verified {
+        color: green;
       }
       .comments-avatar {
         margin-right: 10px;
@@ -70,7 +73,7 @@ const AKASHAComments = (function () {
         text-align: left;
       }
       .new-comment {
-        margin-top: 20px;
+        margin: 20px 0 20px 0;
         might-height: 100px;
       }
       .new-button {
@@ -144,7 +147,7 @@ const AKASHAComments = (function () {
           'author': profile.ethereum_proof.linked_did,
           'body': textbox.value
         }
-        signData(payload).then(function (signature) {
+        signData(JSON.stringify(payload)).then(function (signature) {
           let data = {
             '@context': [
               'https://w3id.org/identity/v1',
@@ -162,12 +165,13 @@ const AKASHAComments = (function () {
           // TODO write to IPFS
           window.Hyperdata.IPFS.addString(JSON.stringify(data)).then(function (res) {
             data.source = 'ipfs://' + res[0].hash
+            data.verified = true // signing step succeeded (verify by default for now)
             // add comment to list
             if (profile.name) {
-              data.payload.authorName = profile.name
+              data.authorName = profile.name
             }
             if (profile.image) {
-              data.payload.authorImage = 'https://ipfs.infura.io/ipfs/' + profile.image[0].contentUrl['/']
+              data.authorImage = 'https://ipfs.infura.io/ipfs/' + profile.image[0].contentUrl['/']
             }
             toCommentsList(data)
             // finally, remove the dialog div
@@ -192,8 +196,9 @@ const AKASHAComments = (function () {
 
   // sign data using Metamask and ETH keys (using web3)
   const signData = function (data) {
+    console.log('Signing data:', data)
     return new Promise(function (resolve, reject) {
-      const hash = web3js.sha3(JSON.stringify(data))
+      const hash = web3js.sha3(data)
       web3js.personal.sign(hash, web3js.eth.defaultAccount, function (err, signature) {
         if (err) {
           console.error(err)
@@ -206,7 +211,7 @@ const AKASHAComments = (function () {
   // verify signature (using web3)
   const verifySig = function (data, sig, id) {
     return new Promise(function (resolve, reject) {
-      const hash = web3js.sha3(JSON.stringify(data))
+      const hash = web3js.sha3(data)
       web3js.personal.ecRecover(hash, sig, function (err, result) {
         if (err) {
           return reject(err)
@@ -254,12 +259,17 @@ const AKASHAComments = (function () {
     if (!data || !data.payload) {
       return
     }
-    data.payload.authorImage = data.payload.authorImage || 'favicon.png'
-    data.payload.authorName = data.payload.authorName || 'anonymous'
+    data.authorImage = data.authorImage || 'favicon.png'
+    data.authorName = data.authorName || 'anonymous'
 
     const comment = document.createElement('div')
     comment.setAttribute('style', 'margin-top: 2em;')
     comment.id = data.source
+
+    let verified = '<small>[not verified]</small>'
+    if (data.verified) {
+      verified = '<small class="verified">[verified]</small>'
+    }
 
     let source = data.source
     if (source.indexOf('ipfs') >= 0) {
@@ -269,12 +279,13 @@ const AKASHAComments = (function () {
     const date = new Date(data.payload.created).toLocaleDateString() + ' at ' + new Date(data.payload.created).toLocaleTimeString()
 
     comment.innerHTML = `<div class="comments-user"> 
-      <img class="comments-avatar" src="${data.payload.authorImage}">
+      <img class="comments-avatar" src="${data.authorImage}">
       <div class="comments-box">
         <h4 class="comments-body">${data.payload.body}</h4>
-        By ${data.payload.authorName}<br>
+        By ${data.authorName}<br>
         <small>On ${date}</small><br>
         <small>Source: <a href="${source}">${data.source}</a></small>
+        ${verified}
       </div>
     </div>`
 
@@ -314,6 +325,7 @@ const AKASHAComments = (function () {
   const getProfileFromETH = function (addr) {
     return new Promise(function (resolve, reject) {
       window.Box.getProfile(addr).then(profile => {
+        profile.key = addr
         return resolve(profile)
       }).catch(function (err) {
         return reject(err)
@@ -330,6 +342,7 @@ const AKASHAComments = (function () {
       window.Hyperdata.Fetch('ipfs://' + CID).then(function (data) {
         if (data && data.managementKey) {
           window.Box.getProfile(data.managementKey).then(function (profile) {
+            profile.key = data.managementKey
             return resolve(profile)
           }).catch(function (err) {
             reject(err)
@@ -370,15 +383,29 @@ const AKASHAComments = (function () {
       window.Hyperdata.Fetch(url).then(function (data) {
         if (data) {
           data.source = url
+          data.verified = false
           getProfileFromDID(data.payload.author).then(function (profile) {
-            data.payload.authorDID = profile.ethereum_proof.linked_did
+            data.authorDID = profile.ethereum_proof.linked_did
             if (profile.name) {
-              data.payload.authorName = profile.name
+              data.authorName = profile.name
             }
             if (profile.image) {
-              data.payload.authorImage = 'https://ipfs.infura.io/ipfs/' + profile.image[0].contentUrl['/']
+              data.authorImage = 'https://ipfs.infura.io/ipfs/' + profile.image[0].contentUrl['/']
             }
-            toCommentsList(data)
+            if (profile.key) {
+              // verify signature if key is present
+              verifySig(JSON.stringify(data.payload), data.proof.signatureValue, profile.key).then(function (ok) {
+                if (ok) {
+                  data.verified = true
+                }
+                toCommentsList(data)
+              }).catch(function (err) {
+                console.log(err)
+                toCommentsList(data)
+              })
+            } else {
+              toCommentsList(data)
+            }
           }).catch(function (err) {
             console.log(err)
             toCommentsList(data)
@@ -391,6 +418,8 @@ const AKASHAComments = (function () {
   }
 
   return {
-    init
+    init,
+    signData,
+    verifySig
   }
 })()
